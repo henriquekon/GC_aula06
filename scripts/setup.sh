@@ -15,7 +15,7 @@ sudo systemctl enable docker
 sudo usermod -aG docker $USER
 
 rm -rf GC_aula06
-git clone git@github.com:henriquekon/GC_aula06.git
+git clone https://github.com/henriquekon/GC_aula06.git
 cd GC_aula06
 
 sudo docker compose up -d
