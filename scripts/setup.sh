@@ -19,3 +19,8 @@ git clone https://github.com/henriquekon/GC_aula06.git
 cd GC_aula06
 
 sudo docker compose up -d
+
+sleep 10 # esperar Postgres
+
+sudo docker exec create_db pip install -r /app/requirements.txt
+sudo docker exec create_db python /app/create_db.py

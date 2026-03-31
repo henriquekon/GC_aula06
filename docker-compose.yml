@@ -10,6 +10,36 @@ services:
     networks:
       - web-network
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: my-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: receitas
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgres/data
+    restart: unless-stopped
+    networks:
+      - web-network
+
+  python-app:
+    image: python:3.12-slim
+    container_name: create_db
+    volumes:
+      - ./scripts:/app
+    working_dir: /app
+    command: tail -f /dev/null
+    depends_on:
+      - postgres
+    networks:
+      - web-network
+
+volumes:
+  postgres-data:
+
 networks:
   web-network:
     driver: bridge
