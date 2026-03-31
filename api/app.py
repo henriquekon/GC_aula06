@@ -7,7 +7,9 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'secret-key-ultra-top-secret'
-CORS(app)
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = False
+CORS(app, supports_credentials=True, origins=['http://177.44.248.17'])
 
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST', 'postgres'),
@@ -53,6 +55,7 @@ def logout():
     return jsonify({'success': True})
 
 @app.route('/api/receitas', methods=['GET'])
+@login_required
 def get_receitas():
     tipo = request.args.get('tipo')
     conn = get_db()
@@ -73,6 +76,7 @@ def get_receitas():
     return jsonify(receitas)
 
 @app.route('/api/receitas/<string:nome>', methods=['GET'])
+@login_required
 def get_receita_nome(nome):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -91,6 +95,7 @@ def get_receita_nome(nome):
     return jsonify({'error': 'Nenhuma receita encontrada'}), 404
 
 @app.route('/api/receitas/<int:id>', methods=['GET'])
+@login_required
 def get_receita(id):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
