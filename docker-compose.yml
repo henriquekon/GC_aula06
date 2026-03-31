@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: .
+    container_name: my-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+    restart: unless-stopped
+    networks:
+      - web-network
+
+networks:
+  web-network:
+    driver: bridge
