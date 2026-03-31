@@ -37,6 +37,21 @@ services:
     networks:
       - web-network
 
+  api:
+    build: ./api
+    container_name: minha-api
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: receitas
+    depends_on:
+      - postgres
+    networks:
+      - web-network
+
 volumes:
   postgres-data:
 
