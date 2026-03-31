@@ -9,7 +9,11 @@ app = Flask(__name__)
 app.secret_key = 'secret-key-ultra-top-secret'
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = False
-CORS(app, supports_credentials=True, origins=['http://177.44.248.17'])
+CORS(app, 
+     supports_credentials=True,
+     origins=['http://177.44.248.17', 'http://localhost'],
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST', 'postgres'),
