@@ -63,7 +63,11 @@ def get_receitas():
     else:
         cur.execute("SELECT * FROM receita")
     
-    receitas = [dict(row) for row in cur.fetchall()]
+    receitas = []
+    for row in cur.fetchall():
+        r = dict(row)
+        r['custo'] = float(r['custo'])
+        receitas.append(r)
     cur.close()
     conn.close()
     return jsonify(receitas)
@@ -78,7 +82,12 @@ def get_receita_nome(nome):
     conn.close()
 
     if receitas:
-        return jsonify([dict(r) for r in receitas])
+        receitas_json = []
+        for r in receitas:
+            r_dict = dict(r)
+            r_dict['custo'] = float(r_dict['custo'])
+            receitas_json.append(r_dict)
+        return jsonify(receitas_json)
     return jsonify({'error': 'Nenhuma receita encontrada'}), 404
 
 @app.route('/api/receitas/<int:id>', methods=['GET'])
@@ -91,7 +100,9 @@ def get_receita(id):
     conn.close()
     
     if receita:
-        return jsonify(dict(receita))
+        r = dict(receita)
+        r['custo'] = float(r['custo'])
+        return jsonify(r)
     return jsonify({'error': 'Receita não encontrada'}), 404
 
 if __name__ == '__main__':
