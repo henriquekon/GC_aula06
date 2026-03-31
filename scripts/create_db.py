@@ -22,7 +22,7 @@ def create_tables():
                 descricao VARCHAR(200) NOT NULL,
                 data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 custo NUMERIC NOT NULL,
-                tipo_receita VARCHAR(100) NOT NULL CHECK (tipo_receita IN ('doce', 'salgada')),
+                tipo_receita VARCHAR(100) NOT NULL CHECK (tipo_receita IN ('doce', 'salgada'))
             )
         """)
         cur.execute("""
