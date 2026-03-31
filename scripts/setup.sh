@@ -20,7 +20,7 @@ cd GC_aula06
 
 sudo docker compose up -d
 
-sleep 10 # esperar Postgres
+sleep 15 # esperar Postgres
 
-sudo docker exec create_db pip install -r /app/requirements.txt
-sudo docker exec create_db python /app/create_db.py
+sudo docker exec create_db pip install -r requirements.txt
+sudo docker exec create_db python create_db.py

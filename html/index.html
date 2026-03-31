@@ -3,24 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker - Gerência de Configuração</title>
+    <title>Receitas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .filtros {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .filtros button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .filtros button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .receitas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .receita-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .receita-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .receita-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .receita-card p {
+            color: #666;
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .custo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin: 10px 0;
+        }
+
+        .tipo {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tipo-doce {
+            background: #ffe0e0;
+            color: #c41e1e;
+        }
+
+        .tipo-salgada {
+            background: #e0ffe0;
+            color: #2e7d32;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Docker + Nginx</h1>
-        <h2>Gerência de Configuração</h2>
-        
-        <div class="info">
-            <h3>Informações do Container:</h3>
-            <p><strong>Servidor:</strong> Nginx</p>
-            <p><strong>Plataforma:</strong> Docker</p>
-            <p><strong>Status:</strong> <span style="color:#4caf50;">● Rodando</span></p>
+        <div class="header">
+            <h1>Cardápio de Receitas</h1>
+            <button class="logout-btn" onclick="fazerLogout()">Sair</button>
         </div>
-        
-        <div class="footer">
-            <p>Disciplina: Gerência de Configuração | Demonstração Docker</p>
+
+        <div class="filtros">
+            <button onclick="carregarReceitas('todas')" id="btn-todas">Todas</button>
+            <button onclick="carregarReceitas('doce')" id="btn-doce">Doces</button>
+            <button onclick="carregarReceitas('salgada')" id="btn-salgada">Salgadas</button>
+        </div>
+
+        <div id="receitas-container" class="receitas-grid">
+            <div class="loading">Carregando receitas...</div>
         </div>
     </div>
-    
+
+    <script>
+        const API_URL = 'http://' + window.location.hostname + ':5000/api';
+
+        async function verificarLogin() {
+            try {
+                const response = await fetch(`${API_URL}/receitas`);
+                if (response.status === 401) {
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+
+        async function carregarReceitas(tipo = 'todas') {
+            const container = document.getElementById('receitas-container');
+            container.innerHTML = '<div class="loading">Carregando receitas...</div>';
+
+            let url = `${API_URL}/receitas`;
+            if (tipo !== 'todas') {
+                url = `${API_URL}/receitas?tipo=${tipo}`;
+            }
+
+            const response = await fetch(url);
+            const receitas = await response.json();
+
+            if (receitas.length === 0) {
+                container.innerHTML = '<div class="loading">Nenhuma receita encontrada</div>';
+                return;
+            }
+
+            container.innerHTML = receitas.map(r => `
+                <div class="receita-card">
+                    <h3>${r.nome}</h3>
+                    <p>${r.descricao}</p>
+                    <div class="custo">💰 R$ ${r.custo.toFixed(2)}</div>
+                    <span class="tipo tipo-${r.tipo_receita}">${r.tipo_receita.toUpperCase()}</span>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.filtros button').forEach(btn => btn.classList.remove('active'));
+            if (tipo === 'todas') document.getElementById('btn-todas').classList.add('active');
+            if (tipo === 'doce') document.getElementById('btn-doce').classList.add('active');
+            if (tipo === 'salgada') document.getElementById('btn-salgada').classList.add('active');
+        }
+
+        async function fazerLogout() {
+            await fetch(`${API_URL}/logout`, { method: 'POST' });
+            window.location.href = '/login.html';
+        }
+
+        verificarLogin();
+        carregarReceitas();
+    </script>
 </body>
 </html>
