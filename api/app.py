@@ -111,5 +111,87 @@ def get_receita(id):
         return jsonify(r)
     return jsonify({'error': 'Receita não encontrada'}), 404
 
+@app.route('/api/receitas', methods=['POST'])
+@login_required
+def create_receita():
+    data = request.json
+    nome = data.get('nome')
+    descricao = data.get('descricao')
+    custo = data.get('custo')
+    tipo_receita = data.get('tipo_receita')
+    
+    if not all([nome, descricao, custo, tipo_receita]):
+        return jsonify({'error': 'Todos os campos são obrigatórios'}), 400
+    
+    if tipo_receita not in ['doce', 'salgada']:
+        return jsonify({'error': 'Tipo deve ser "doce" ou "salgada"'}), 400
+    
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute("""
+        INSERT INTO receita (nome, descricao, custo, tipo_receita) 
+        VALUES (%s, %s, %s, %s) 
+        RETURNING id
+    """, (nome, descricao, custo, tipo_receita))
+    
+    new_id = cur.fetchone()['id']
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({'success': True, 'id': new_id}), 201
+
+@app.route('/api/receitas/<int:id>', methods=['PUT'])
+@login_required
+def update_receita(id):
+    data = request.json
+    nome = data.get('nome')
+    descricao = data.get('descricao')
+    custo = data.get('custo')
+    tipo_receita = data.get('tipo_receita')
+    
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    # Verifica se receita existe
+    cur.execute("SELECT * FROM receita WHERE id = %s", (id,))
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'Receita não encontrada'}), 404
+    
+    cur.execute("""
+        UPDATE receita 
+        SET nome = %s, descricao = %s, custo = %s, tipo_receita = %s
+        WHERE id = %s
+    """, (nome, descricao, custo, tipo_receita, id))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/receitas/<int:id>', methods=['DELETE'])
+@login_required
+def delete_receita(id):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    # Verifica se receita existe
+    cur.execute("SELECT * FROM receita WHERE id = %s", (id,))
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'Receita não encontrada'}), 404
+    
+    cur.execute("DELETE FROM receita WHERE id = %s", (id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({'success': True})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

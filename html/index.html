@@ -52,6 +52,7 @@
             margin-bottom: 20px;
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         .filtros button {
@@ -68,6 +69,16 @@
             color: white;
         }
 
+        .btn-criar {
+            background: #28a745;
+            color: white;
+            margin-left: auto;
+        }
+
+        .btn-criar:hover {
+            background: #218838;
+        }
+
         .receitas-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -80,6 +91,7 @@
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             transition: transform 0.2s;
+            position: relative;
         }
 
         .receita-card:hover {
@@ -123,11 +135,113 @@
             color: #2e7d32;
         }
 
+        .acoes {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-editar {
+            background: #ffc107;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-editar:hover {
+            background: #e0a800;
+        }
+
+        .btn-remover {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remover:hover {
+            background: #c82333;
+        }
+
         .loading {
             text-align: center;
             padding: 50px;
             font-size: 18px;
             color: #666;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content input,
+        .modal-content textarea,
+        .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-salvar {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-cancelar {
+            background: #6c757d;
+            color: white;
         }
     </style>
 </head>
@@ -142,10 +256,30 @@
             <button onclick="carregarReceitas('todas')" id="btn-todas">Todas</button>
             <button onclick="carregarReceitas('doce')" id="btn-doce">Doces</button>
             <button onclick="carregarReceitas('salgada')" id="btn-salgada">Salgadas</button>
+            <button class="btn-criar" onclick="abrirModalCriar()">+ Nova Receita</button>
         </div>
 
         <div id="receitas-container" class="receitas-grid">
             <div class="loading">Carregando receitas...</div>
+        </div>
+    </div>
+
+    <!-- Modal para Criar/Editar -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Nova Receita</h2>
+            <input type="hidden" id="receita-id">
+            <input type="text" id="nome" placeholder="Nome da receita">
+            <textarea id="descricao" placeholder="Descrição"></textarea>
+            <input type="number" id="custo" step="0.01" placeholder="Custo (R$)">
+            <select id="tipo_receita">
+                <option value="doce">Doce</option>
+                <option value="salgada">Salgada</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                <button class="btn-salvar" onclick="salvarReceita()">Salvar</button>
+            </div>
         </div>
     </div>
 
@@ -188,8 +322,12 @@
                 <div class="receita-card">
                     <h3>${r.nome}</h3>
                     <p>${r.descricao}</p>
-                    <div class="custo">R$ ${r.custo.toFixed(2)}</div>
+                    <div class="custo">R$ ${Number(r.custo).toFixed(2)}</div>
                     <span class="tipo tipo-${r.tipo_receita}">${r.tipo_receita.toUpperCase()}</span>
+                    <div class="acoes">
+                        <button class="btn-editar" onclick="abrirModalEditar(${r.id})">Editar</button>
+                        <button class="btn-remover" onclick="removerReceita(${r.id})">Remover</button>
+                    </div>
                 </div>
             `).join('');
 
@@ -199,9 +337,99 @@
             if (tipo === 'salgada') document.getElementById('btn-salgada').classList.add('active');
         }
 
+        async function removerReceita(id) {
+            if (!confirm('Tem certeza que deseja remover esta receita?')) return;
+
+            const response = await fetch(`${API_URL}/receitas/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                alert('Receita removida com sucesso!');
+                carregarReceitas();
+            } else {
+                alert('Erro ao remover receita');
+            }
+        }
+
+        function abrirModalCriar() {
+            document.getElementById('modal-title').innerText = 'Nova Receita';
+            document.getElementById('receita-id').value = '';
+            document.getElementById('nome').value = '';
+            document.getElementById('descricao').value = '';
+            document.getElementById('custo').value = '';
+            document.getElementById('tipo_receita').value = 'doce';
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        async function abrirModalEditar(id) {
+            const response = await fetch(`${API_URL}/receitas/${id}`, {
+                credentials: 'include'
+            });
+            const receita = await response.json();
+
+            document.getElementById('modal-title').innerText = 'Editar Receita';
+            document.getElementById('receita-id').value = receita.id;
+            document.getElementById('nome').value = receita.nome;
+            document.getElementById('descricao').value = receita.descricao;
+            document.getElementById('custo').value = receita.custo;
+            document.getElementById('tipo_receita').value = receita.tipo_receita;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        async function salvarReceita() {
+            const id = document.getElementById('receita-id').value;
+            const nome = document.getElementById('nome').value;
+            const descricao = document.getElementById('descricao').value;
+            const custo = parseFloat(document.getElementById('custo').value);
+            const tipo_receita = document.getElementById('tipo_receita').value;
+
+            if (!nome || !descricao || !custo || !tipo_receita) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+
+            const data = { nome, descricao, custo, tipo_receita };
+            
+            let url = `${API_URL}/receitas`;
+            let method = 'POST';
+
+            if (id) {
+                url = `${API_URL}/receitas/${id}`;
+                method = 'PUT';
+            }
+
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert(id ? 'Receita atualizada!' : 'Receita criada!');
+                fecharModal();
+                carregarReceitas();
+            } else {
+                alert('Erro ao salvar receita');
+            }
+        }
+
+        function fecharModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
         async function fazerLogout() {
-            await fetch(`${API_URL}/logout`, { method: 'POST' });
+            await fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' });
             window.location.href = '/login.html';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                fecharModal();
+            }
         }
 
         verificarLogin();
