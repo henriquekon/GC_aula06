@@ -1,7 +1,5 @@
 import psycopg2
-from psycopg2 import sql
 
-# Configuração do banco
 DB_CONFIG = {
     'host': 'postgres',
     'port': 5432,
@@ -14,30 +12,42 @@ def create_tables():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
-        
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS receita (
                 id SERIAL PRIMARY KEY,
-                nome VARCHAR(100) NOT NULL,
+                nome VARCHAR(100) NOT NULL UNIQUE,
                 descricao VARCHAR(200) NOT NULL,
                 data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 custo NUMERIC NOT NULL,
                 tipo_receita VARCHAR(100) NOT NULL CHECK (tipo_receita IN ('doce', 'salgada'))
             )
         """)
+
         cur.execute("""
-                CREATE TABLE IF NOT EXISTS usuario (
-                    id SERIAL PRIMARY KEY,
-                    nome VARCHAR(100) NOT NULL,
-                    login VARCHAR(100) NOT NULL UNIQUE,
-                    senha VARCHAR(100) NOT NULL,
-                    situacao VARCHAR(100) NOT NULL
-                )
-            """)
-        
-        # INSERÇÕES:
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint
+                    WHERE conname = 'receita_nome_key'
+                ) THEN
+                    ALTER TABLE receita ADD CONSTRAINT receita_nome_key UNIQUE (nome);
+                END IF;
+            END $$;
+        """)
+
         cur.execute("""
-            INSERT INTO usuario (nome, login, senha, situacao) 
+            CREATE TABLE IF NOT EXISTS usuario (
+                id SERIAL PRIMARY KEY,
+                nome VARCHAR(100) NOT NULL,
+                login VARCHAR(100) NOT NULL UNIQUE,
+                senha VARCHAR(100) NOT NULL,
+                situacao VARCHAR(100) NOT NULL
+            )
+        """)
+
+        cur.execute("""
+            INSERT INTO usuario (nome, login, senha, situacao)
             VALUES ('Administrador', 'admin', 'admin123', 'ativo')
             ON CONFLICT (login) DO NOTHING
         """)
@@ -57,15 +67,16 @@ def create_tables():
 
         for receita in receitas:
             cur.execute("""
-                INSERT INTO receita (nome, descricao, custo, tipo_receita) 
+                INSERT INTO receita (nome, descricao, custo, tipo_receita)
                 VALUES (%s, %s, %s, %s)
+                ON CONFLICT (nome) DO NOTHING
             """, receita)
-        
+
         conn.commit()
-        
         cur.close()
         conn.close()
-        
+        print("Banco configurado com sucesso.")
+
     except Exception as e:
         print(f"Erro: {e}")
 
