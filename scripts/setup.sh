@@ -25,14 +25,13 @@ read -rp "  Usuário SMTP: " MAIL_USER
 read -rsp "  Senha SMTP:   " MAIL_PASS
 echo ""
 
-# Valida campos obrigatórios
 [[ -z "$MAIL_FROM" || -z "$MAIL_TO" || -z "$MAIL_USER" || -z "$MAIL_PASS" ]] && \
   error "Todos os campos de e-mail são obrigatórios."
 
 success "Configuração de e-mail salva."
 echo ""
 
-# Instala docker
+# Docker
 if ! command -v docker &>/dev/null; then
   info "Instalando Docker..."
   sudo apt update -qq
@@ -52,21 +51,20 @@ else
   success "Docker já instalado."
 fi
 
-# Clona ou atualiza o repositório
-REPO_DIR="GC_aula06"
+# Repo
+REPO_DIR="$HOME/GC_aula06"
+
 if [ -d "$REPO_DIR/.git" ]; then
   info "Repositório já existe – atualizando..."
-  cd "$REPO_DIR" && git pull --ff-only && cd ..
+  git -C "$REPO_DIR" pull --ff-only
 else
   info "Clonando repositório..."
   rm -rf "$REPO_DIR"
-  git clone https://github.com/henriquekon/GC_aula06.git
+  git clone https://github.com/henriquekon/GC_aula06.git "$REPO_DIR"
 fi
 
-cd "$REPO_DIR"
-
-# Gera .env
-cat > .env <<EOF
+# .env
+cat > "$REPO_DIR/.env" <<EOF
 MAIL_HOST=${MAIL_HOST}
 MAIL_PORT=${MAIL_PORT}
 MAIL_USER=${MAIL_USER}
@@ -76,31 +74,33 @@ MAIL_TO=${MAIL_TO}
 EOF
 success ".env criado com credenciais de e-mail."
 
-# Sobe conteiners
+# Conteiners
 info "Iniciando containers (docker compose up)..."
-sudo docker compose --env-file .env up -d --build
+sudo docker compose -f "$REPO_DIR/docker-compose.yml" --env-file "$REPO_DIR/.env" up -d --build
 success "Containers no ar."
 
+# Aguardar postgres
 info "Aguardando Postgres inicializar..."
 for i in $(seq 1 30); do
   if sudo docker exec my-postgres pg_isready -U postgres -q 2>/dev/null; then
     success "Postgres pronto (${i}s)."
     break
   fi
+  [ "$i" -eq 30 ] && error "Postgres não respondeu em 30s."
   sleep 1
 done
 
-# Cria banco
+# DB
 info "Criando tabelas e populando banco..."
-sudo docker exec --workdir /app create_db pip install -r requirements.txt -q
-sudo docker exec --workdir /app create_db python create_db.py
+sudo docker exec minha-api bash -c "cd /app && python /app/scripts/create_db.py"
 success "Banco de dados configurado."
 
+# Testes
 echo ""
 info "Executando testes unitários..."
 echo "──────────────────────────────────────────"
 
-if sudo docker exec --workdir /app minha-api python -m pytest tests.py -v --tb=short; then
+if sudo docker exec minha-api bash -c "cd /app && python -m pytest tests.py -v --tb=short"; then
   echo "──────────────────────────────────────────"
   success "Todos os testes passaram! ✓"
 else
