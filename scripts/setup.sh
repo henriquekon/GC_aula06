@@ -79,7 +79,7 @@ info "Iniciando containers (docker compose up)..."
 sudo docker compose -f "$REPO_DIR/docker-compose.yml" --env-file "$REPO_DIR/.env" up -d --build
 success "Containers no ar."
 
-# Aguardar postgres
+# Aguarda postgres
 info "Aguardando Postgres inicializar..."
 for i in $(seq 1 30); do
   if sudo docker exec my-postgres pg_isready -U postgres -q 2>/dev/null; then
@@ -91,8 +91,12 @@ for i in $(seq 1 30); do
 done
 
 # DB
+info "Instalando dependências no create_db..."
+sudo docker exec create_db pip install -r /app/requirements.txt -q
+success "Dependências instaladas."
+
 info "Criando tabelas e populando banco..."
-sudo docker exec minha-api bash -c "cd /app && python /app/scripts/create_db.py"
+sudo docker exec create_db python /app/create_db.py
 success "Banco de dados configurado."
 
 # Testes
