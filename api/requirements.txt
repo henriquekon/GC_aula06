@@ -2,3 +2,6 @@ flask
 flask-cors
 psycopg2-binary
 reportlab
+pytest
+pytest-mock
+ 

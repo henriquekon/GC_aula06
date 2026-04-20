@@ -58,13 +58,16 @@
 
         .filtros label { font-size: 13px; color: #666; font-weight: bold; }
 
-        .filtros input[type="date"] {
+        .filtros input[type="date"],
+        .filtros input[type="text"] {
             padding: 8px 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 13px;
             color: #333;
         }
+
+        .filtros input[type="text"] { width: 200px; }
 
         .filtros button {
             padding: 9px 18px;
@@ -127,7 +130,7 @@
             font-size: 12px;
             font-weight: bold;
         }
-        .tipo-doce  { background: #ffe0e0; color: #c41e1e; }
+        .tipo-doce    { background: #ffe0e0; color: #c41e1e; }
         .tipo-salgada { background: #e0ffe0; color: #2e7d32; }
 
         .data-registro { font-size: 11px; color: #aaa; margin-top: 8px; }
@@ -195,7 +198,7 @@
         .modal-content textarea { resize: vertical; min-height: 80px; }
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
         .modal-buttons button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-salvar { background: #28a745; color: white; }
+        .btn-salvar   { background: #28a745; color: white; }
         .btn-cancelar { background: #6c757d; color: white; }
     </style>
 </head>
@@ -210,9 +213,18 @@
         <div class="filtros">
             <!-- filtro tipo -->
             <div class="filtros-grupo">
-                <button onclick="setTipo('todas')" id="btn-todas" class="active">Todas</button>
+                <button onclick="setTipo('todas')"   id="btn-todas"   class="active">Todas</button>
                 <button onclick="setTipo('doce')"    id="btn-doce">Doces</button>
                 <button onclick="setTipo('salgada')" id="btn-salgada">Salgadas</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Filtro por nome (pesquisa) -->
+            <div class="filtros-grupo">
+                <label>Buscar:</label>
+                <input type="text" id="busca-nome" placeholder="Nome da receita..."
+                       onkeydown="if(event.key==='Enter') carregarReceitas()">
             </div>
 
             <div class="divider"></div>
@@ -223,9 +235,10 @@
                 <input type="date" id="data_inicio">
                 <label>Até:</label>
                 <input type="date" id="data_fim">
-                <button class="btn-filtrar" onclick="carregarReceitas()">Filtrar</button>
-                <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
             </div>
+
+            <button class="btn-filtrar" onclick="carregarReceitas()">Filtrar</button>
+            <button class="btn-limpar"  onclick="limparFiltros()">Limpar</button>
 
             <button class="btn-criar" onclick="abrirModalCriar()">+ Nova Receita</button>
         </div>
@@ -240,8 +253,8 @@
         <div class="modal-content">
             <h2 id="modal-title">Nova Receita</h2>
             <input type="hidden" id="receita-id">
-            <input type="text"   id="nome"        placeholder="Nome da receita">
-            <textarea            id="descricao"   placeholder="Descrição"></textarea>
+            <input type="text"   id="nome"       placeholder="Nome da receita">
+            <textarea            id="descricao"  placeholder="Descrição"></textarea>
             <input type="number" id="custo" step="0.01" placeholder="Custo (R$)">
             <select id="tipo_receita">
                 <option value="doce">Doce</option>
@@ -254,7 +267,7 @@
         </div>
     </div>
 
-        <script>
+    <script>
         const API_URL = '/api';
         let tipoAtual = 'todas';
 
@@ -273,6 +286,7 @@
         function limparFiltros() {
             document.getElementById('data_inicio').value = '';
             document.getElementById('data_fim').value   = '';
+            document.getElementById('busca-nome').value  = '';
             tipoAtual = 'todas';
             carregarReceitas();
         }
@@ -280,6 +294,30 @@
         async function carregarReceitas() {
             const container = document.getElementById('receitas-container');
             container.innerHTML = '<div class="loading">Carregando receitas...</div>';
+
+            // Atualiza botões de tipo
+            ['todas', 'doce', 'salgada'].forEach(t => {
+                const btn = document.getElementById(`btn-${t}`);
+                if (btn) btn.classList.toggle('active', t === tipoAtual);
+            });
+
+            const nome = document.getElementById('busca-nome').value.trim();
+
+            // Se há busca por nome, usa endpoint de busca
+            if (nome) {
+                try {
+                    const resp = await fetch(`${API_URL}/receitas/${encodeURIComponent(nome)}`, { credentials: 'include' });
+                    if (resp.status === 404) {
+                        container.innerHTML = '<div class="loading">Nenhuma receita encontrada</div>';
+                        return;
+                    }
+                    const receitas = await resp.json();
+                    renderReceitas(Array.isArray(receitas) ? receitas : [receitas]);
+                } catch {
+                    container.innerHTML = '<div class="loading">Erro ao buscar receitas</div>';
+                }
+                return;
+            }
 
             const params = new URLSearchParams();
             if (tipoAtual !== 'todas') params.append('tipo', tipoAtual);
@@ -289,11 +327,17 @@
             if (di) params.append('data_inicio', di);
             if (df) params.append('data_fim', df);
 
-            const resp = await fetch(`${API_URL}/receitas?${params}`, { credentials: 'include' });
-            const receitas = await resp.json();
+            try {
+                const resp    = await fetch(`${API_URL}/receitas?${params}`, { credentials: 'include' });
+                const receitas = await resp.json();
+                renderReceitas(receitas);
+            } catch {
+                container.innerHTML = '<div class="loading">Erro ao carregar receitas</div>';
+            }
+        }
 
-            document.querySelectorAll('.filtros-grupo button[id^="btn-"]').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-${tipoAtual}`).classList.add('active');
+        function renderReceitas(receitas) {
+            const container = document.getElementById('receitas-container');
 
             if (!receitas.length) {
                 container.innerHTML = '<div class="loading">Nenhuma receita encontrada</div>';
@@ -302,7 +346,9 @@
 
             container.innerHTML = receitas.map(r => {
                 const data = r.data_registro
-                    ? new Date(r.data_registro).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                    ? new Date(r.data_registro).toLocaleDateString('pt-BR',
+                        { day: '2-digit', month: '2-digit', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit' })
                     : '';
                 return `
                 <div class="receita-card">
@@ -334,14 +380,16 @@
 
         async function removerReceita(id) {
             if (!confirm('Tem certeza que deseja remover esta receita?')) return;
-            const r = await fetch(`${API_URL}/receitas/${id}`, { method: 'DELETE', credentials: 'include' });
+            const r = await fetch(`${API_URL}/receitas/${id}`,
+                                  { method: 'DELETE', credentials: 'include' });
             if (r.ok) { carregarReceitas(); }
             else { alert('Erro ao remover receita'); }
         }
 
         function abrirModalCriar() {
             document.getElementById('modal-title').innerText = 'Nova Receita';
-            ['receita-id','nome','descricao','custo'].forEach(id => document.getElementById(id).value = '');
+            ['receita-id', 'nome', 'descricao', 'custo'].forEach(id =>
+                document.getElementById(id).value = '');
             document.getElementById('tipo_receita').value = 'doce';
             document.getElementById('modal').style.display = 'block';
         }
@@ -349,20 +397,20 @@
         async function abrirModalEditar(id) {
             const resp    = await fetch(`${API_URL}/receitas/${id}`, { credentials: 'include' });
             const receita = await resp.json();
-            document.getElementById('modal-title').innerText  = 'Editar Receita';
-            document.getElementById('receita-id').value       = receita.id;
-            document.getElementById('nome').value             = receita.nome;
-            document.getElementById('descricao').value        = receita.descricao;
-            document.getElementById('custo').value            = receita.custo;
-            document.getElementById('tipo_receita').value     = receita.tipo_receita;
-            document.getElementById('modal').style.display   = 'block';
+            document.getElementById('modal-title').innerText = 'Editar Receita';
+            document.getElementById('receita-id').value = receita.id;
+            document.getElementById('nome').value = receita.nome;
+            document.getElementById('descricao').value = receita.descricao;
+            document.getElementById('custo').value = receita.custo;
+            document.getElementById('tipo_receita').value = receita.tipo_receita;
+            document.getElementById('modal').style.display = 'block';
         }
 
         async function salvarReceita() {
-            const id          = document.getElementById('receita-id').value;
-            const nome        = document.getElementById('nome').value;
-            const descricao   = document.getElementById('descricao').value;
-            const custo       = parseFloat(document.getElementById('custo').value);
+            const id = document.getElementById('receita-id').value;
+            const nome = document.getElementById('nome').value.trim();
+            const descricao = document.getElementById('descricao').value.trim();
+            const custo = parseFloat(document.getElementById('custo').value);
             const tipo_receita = document.getElementById('tipo_receita').value;
 
             if (!nome || !descricao || !custo || !tipo_receita) {
@@ -376,7 +424,7 @@
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ nome, descricao, custo, tipo_receita })
+                body: JSON.stringify({ nome, descricao, custo, tipo_receita }),
             });
 
             if (resp.ok) {
@@ -384,7 +432,8 @@
                 fecharModal();
                 carregarReceitas();
             } else {
-                alert('Erro ao salvar receita');
+                const data = await resp.json().catch(() => ({}));
+                alert(data.error || 'Erro ao salvar receita');
             }
         }
 
@@ -404,6 +453,6 @@
 
         verificarLogin();
         carregarReceitas();
-        </script>
-    </body>
+    </script>
+</body>
 </html>
