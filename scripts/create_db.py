@@ -75,8 +75,6 @@ def create_tables():
         conn.commit()
         cur.close()
         conn.close()
-        print("Banco configurado com sucesso.")
-
     except Exception as e:
         print(f"Erro: {e}")
 
