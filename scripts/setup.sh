@@ -94,8 +94,8 @@ done
 
 # Cria banco
 info "Criando tabelas e populando banco..."
-sudo docker exec create_db pip install -r requirements.txt -q
-sudo docker exec create_db python create_db.py
+sudo docker exec -w /app create_db pip install -r requirements.txt -q
+sudo docker exec -w /app create_db python create_db.py
 success "Banco de dados configurado."
 
 # Testes
