@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receitas</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: Arial, sans-serif;
@@ -17,11 +13,7 @@
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -43,42 +35,68 @@
             cursor: pointer;
             font-size: 14px;
         }
+        .logout-btn:hover { background: #c82333; }
 
-        .logout-btn:hover {
-            background: #c82333;
-        }
-
+        /* Filters bar */
         .filtros {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,.08);
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             align-items: center;
         }
 
+        .filtros-grupo {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filtros label { font-size: 13px; color: #666; font-weight: bold; }
+
+        .filtros input[type="date"] {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #333;
+        }
+
         .filtros button {
-            padding: 10px 20px;
+            padding: 9px 18px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             background: #e0e0e0;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: bold;
         }
-
-        .filtros button.active {
-            background: #667eea;
-            color: white;
-        }
+        .filtros button.active { background: #667eea; color: white; }
 
         .btn-criar {
-            background: #28a745;
-            color: white;
+            background: #28a745 !important;
+            color: white !important;
             margin-left: auto;
         }
+        .btn-criar:hover { background: #218838 !important; }
 
-        .btn-criar:hover {
-            background: #218838;
+        .btn-filtrar {
+            background: #667eea !important;
+            color: white !important;
         }
 
+        .btn-limpar {
+            background: #6c757d !important;
+            color: white !important;
+        }
+
+        .divider { width: 1px; height: 30px; background: #e0e0e0; margin: 0 5px; }
+
+        /* Grid */
         .receitas-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -89,33 +107,18 @@
             background: white;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,.1);
             transition: transform 0.2s;
-            position: relative;
         }
-
         .receita-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,.2);
         }
 
-        .receita-card h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
+        .receita-card h3 { color: #667eea; margin-bottom: 10px; }
+        .receita-card p { color: #666; margin: 10px 0; line-height: 1.5; }
 
-        .receita-card p {
-            color: #666;
-            margin: 10px 0;
-            line-height: 1.5;
-        }
-
-        .custo {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2e7d32;
-            margin: 10px 0;
-        }
+        .custo { font-size: 18px; font-weight: bold; color: #2e7d32; margin: 10px 0; }
 
         .tipo {
             display: inline-block;
@@ -124,71 +127,51 @@
             font-size: 12px;
             font-weight: bold;
         }
+        .tipo-doce  { background: #ffe0e0; color: #c41e1e; }
+        .tipo-salgada { background: #e0ffe0; color: #2e7d32; }
 
-        .tipo-doce {
-            background: #ffe0e0;
-            color: #c41e1e;
-        }
-
-        .tipo-salgada {
-            background: #e0ffe0;
-            color: #2e7d32;
-        }
+        .data-registro { font-size: 11px; color: #aaa; margin-top: 8px; }
 
         .acoes {
             margin-top: 15px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: flex-end;
+            flex-wrap: wrap;
         }
 
         .btn-editar {
-            background: #ffc107;
-            color: #333;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
+            background: #ffc107; color: #333;
+            border: none; padding: 5px 10px;
+            border-radius: 5px; cursor: pointer; font-size: 12px;
         }
-
-        .btn-editar:hover {
-            background: #e0a800;
-        }
+        .btn-editar:hover { background: #e0a800; }
 
         .btn-remover {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
+            background: #dc3545; color: white;
+            border: none; padding: 5px 10px;
+            border-radius: 5px; cursor: pointer; font-size: 12px;
         }
+        .btn-remover:hover { background: #c82333; }
 
-        .btn-remover:hover {
-            background: #c82333;
+        .btn-pdf {
+            background: #6f42c1; color: white;
+            border: none; padding: 5px 10px;
+            border-radius: 5px; cursor: pointer; font-size: 12px;
         }
+        .btn-pdf:hover { background: #5a32a3; }
 
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 18px;
-            color: #666;
-        }
+        .loading { text-align: center; padding: 50px; font-size: 18px; color: #666; }
 
         /* Modal */
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,.5);
         }
-
         .modal-content {
             background-color: white;
             margin: 10% auto;
@@ -196,14 +179,9 @@
             border-radius: 10px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,.3);
         }
-
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
+        .modal-content h2 { margin-bottom: 20px; color: #333; }
         .modal-content input,
         .modal-content textarea,
         .modal-content select {
@@ -214,35 +192,11 @@
             border-radius: 5px;
             font-size: 16px;
         }
-
-        .modal-content textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-salvar {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-cancelar {
-            background: #6c757d;
-            color: white;
-        }
+        .modal-content textarea { resize: vertical; min-height: 80px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .modal-buttons button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-salvar { background: #28a745; color: white; }
+        .btn-cancelar { background: #6c757d; color: white; }
     </style>
 </head>
 <body>
@@ -252,10 +206,27 @@
             <button class="logout-btn" onclick="fazerLogout()">Sair</button>
         </div>
 
+        <!-- Barra filtros -->
         <div class="filtros">
-            <button onclick="carregarReceitas('todas')" id="btn-todas">Todas</button>
-            <button onclick="carregarReceitas('doce')" id="btn-doce">Doces</button>
-            <button onclick="carregarReceitas('salgada')" id="btn-salgada">Salgadas</button>
+            <!-- filtro tipo -->
+            <div class="filtros-grupo">
+                <button onclick="setTipo('todas')" id="btn-todas" class="active">Todas</button>
+                <button onclick="setTipo('doce')"    id="btn-doce">Doces</button>
+                <button onclick="setTipo('salgada')" id="btn-salgada">Salgadas</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Filtro data -->
+            <div class="filtros-grupo">
+                <label>De:</label>
+                <input type="date" id="data_inicio">
+                <label>Até:</label>
+                <input type="date" id="data_fim">
+                <button class="btn-filtrar" onclick="carregarReceitas()">Filtrar</button>
+                <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
+            </div>
+
             <button class="btn-criar" onclick="abrirModalCriar()">+ Nova Receita</button>
         </div>
 
@@ -264,13 +235,13 @@
         </div>
     </div>
 
-    <!-- Modal para Criar/Editar -->
+    <!-- Modal Create/Edit -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <h2 id="modal-title">Nova Receita</h2>
             <input type="hidden" id="receita-id">
-            <input type="text" id="nome" placeholder="Nome da receita">
-            <textarea id="descricao" placeholder="Descrição"></textarea>
+            <input type="text"   id="nome"        placeholder="Nome da receita">
+            <textarea            id="descricao"   placeholder="Descrição"></textarea>
             <input type="number" id="custo" step="0.01" placeholder="Custo (R$)">
             <select id="tipo_receita">
                 <option value="doce">Doce</option>
@@ -278,136 +249,137 @@
             </select>
             <div class="modal-buttons">
                 <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-                <button class="btn-salvar" onclick="salvarReceita()">Salvar</button>
+                <button class="btn-salvar"   onclick="salvarReceita()">Salvar</button>
             </div>
         </div>
     </div>
 
-    <script>
+        <script>
         const API_URL = '/api';
+        let tipoAtual = 'todas';
 
         async function verificarLogin() {
             try {
-                const response = await fetch(`${API_URL}/receitas`, {
-                    credentials: 'include'
-                });
-                if (response.status === 401) {
-                    window.location.href = '/login.html';
-                }
-            } catch (error) {
-                window.location.href = '/login.html';
-            }
+                const r = await fetch(`${API_URL}/receitas`, { credentials: 'include' });
+                if (r.status === 401) window.location.href = '/login.html';
+            } catch { window.location.href = '/login.html'; }
         }
 
-        async function carregarReceitas(tipo = 'todas') {
+        function setTipo(tipo) {
+            tipoAtual = tipo;
+            carregarReceitas();
+        }
+
+        function limparFiltros() {
+            document.getElementById('data_inicio').value = '';
+            document.getElementById('data_fim').value   = '';
+            tipoAtual = 'todas';
+            carregarReceitas();
+        }
+
+        async function carregarReceitas() {
             const container = document.getElementById('receitas-container');
             container.innerHTML = '<div class="loading">Carregando receitas...</div>';
 
-            let url = `${API_URL}/receitas`;
-            if (tipo !== 'todas') {
-                url = `${API_URL}/receitas?tipo=${tipo}`;
-            }
+            const params = new URLSearchParams();
+            if (tipoAtual !== 'todas') params.append('tipo', tipoAtual);
 
-            const response = await fetch(url, {
-                credentials: 'include'
-            });
-            const receitas = await response.json();
+            const di = document.getElementById('data_inicio').value;
+            const df = document.getElementById('data_fim').value;
+            if (di) params.append('data_inicio', di);
+            if (df) params.append('data_fim', df);
 
-            if (receitas.length === 0) {
+            const resp = await fetch(`${API_URL}/receitas?${params}`, { credentials: 'include' });
+            const receitas = await resp.json();
+
+            document.querySelectorAll('.filtros-grupo button[id^="btn-"]').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${tipoAtual}`).classList.add('active');
+
+            if (!receitas.length) {
                 container.innerHTML = '<div class="loading">Nenhuma receita encontrada</div>';
                 return;
             }
 
-            container.innerHTML = receitas.map(r => `
+            container.innerHTML = receitas.map(r => {
+                const data = r.data_registro
+                    ? new Date(r.data_registro).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                    : '';
+                return `
                 <div class="receita-card">
                     <h3>${r.nome}</h3>
                     <p>${r.descricao}</p>
                     <div class="custo">R$ ${Number(r.custo).toFixed(2)}</div>
                     <span class="tipo tipo-${r.tipo_receita}">${r.tipo_receita.toUpperCase()}</span>
+                    <div class="data-registro">📅 ${data}</div>
                     <div class="acoes">
-                        <button class="btn-editar" onclick="abrirModalEditar(${r.id})">Editar</button>
+                        <button class="btn-pdf"     onclick="exportarPDF(${r.id}, '${r.nome}')">📄 PDF</button>
+                        <button class="btn-editar"  onclick="abrirModalEditar(${r.id})">Editar</button>
                         <button class="btn-remover" onclick="removerReceita(${r.id})">Remover</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
+        }
 
-            document.querySelectorAll('.filtros button').forEach(btn => btn.classList.remove('active'));
-            if (tipo === 'todas') document.getElementById('btn-todas').classList.add('active');
-            if (tipo === 'doce') document.getElementById('btn-doce').classList.add('active');
-            if (tipo === 'salgada') document.getElementById('btn-salgada').classList.add('active');
+        async function exportarPDF(id, nome) {
+            const resp = await fetch(`${API_URL}/receitas/${id}/pdf`, { credentials: 'include' });
+            if (!resp.ok) { alert('Erro ao gerar PDF'); return; }
+            const blob = await resp.blob();
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = `receita_${nome.replace(/\s+/g, '_')}.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         async function removerReceita(id) {
             if (!confirm('Tem certeza que deseja remover esta receita?')) return;
-
-            const response = await fetch(`${API_URL}/receitas/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                alert('Receita removida com sucesso!');
-                carregarReceitas();
-            } else {
-                alert('Erro ao remover receita');
-            }
+            const r = await fetch(`${API_URL}/receitas/${id}`, { method: 'DELETE', credentials: 'include' });
+            if (r.ok) { carregarReceitas(); }
+            else { alert('Erro ao remover receita'); }
         }
 
         function abrirModalCriar() {
             document.getElementById('modal-title').innerText = 'Nova Receita';
-            document.getElementById('receita-id').value = '';
-            document.getElementById('nome').value = '';
-            document.getElementById('descricao').value = '';
-            document.getElementById('custo').value = '';
+            ['receita-id','nome','descricao','custo'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('tipo_receita').value = 'doce';
             document.getElementById('modal').style.display = 'block';
         }
 
         async function abrirModalEditar(id) {
-            const response = await fetch(`${API_URL}/receitas/${id}`, {
-                credentials: 'include'
-            });
-            const receita = await response.json();
-
-            document.getElementById('modal-title').innerText = 'Editar Receita';
-            document.getElementById('receita-id').value = receita.id;
-            document.getElementById('nome').value = receita.nome;
-            document.getElementById('descricao').value = receita.descricao;
-            document.getElementById('custo').value = receita.custo;
-            document.getElementById('tipo_receita').value = receita.tipo_receita;
-            document.getElementById('modal').style.display = 'block';
+            const resp    = await fetch(`${API_URL}/receitas/${id}`, { credentials: 'include' });
+            const receita = await resp.json();
+            document.getElementById('modal-title').innerText  = 'Editar Receita';
+            document.getElementById('receita-id').value       = receita.id;
+            document.getElementById('nome').value             = receita.nome;
+            document.getElementById('descricao').value        = receita.descricao;
+            document.getElementById('custo').value            = receita.custo;
+            document.getElementById('tipo_receita').value     = receita.tipo_receita;
+            document.getElementById('modal').style.display   = 'block';
         }
 
         async function salvarReceita() {
-            const id = document.getElementById('receita-id').value;
-            const nome = document.getElementById('nome').value;
-            const descricao = document.getElementById('descricao').value;
-            const custo = parseFloat(document.getElementById('custo').value);
+            const id          = document.getElementById('receita-id').value;
+            const nome        = document.getElementById('nome').value;
+            const descricao   = document.getElementById('descricao').value;
+            const custo       = parseFloat(document.getElementById('custo').value);
             const tipo_receita = document.getElementById('tipo_receita').value;
 
             if (!nome || !descricao || !custo || !tipo_receita) {
-                alert('Preencha todos os campos!');
-                return;
+                alert('Preencha todos os campos!'); return;
             }
 
-            const data = { nome, descricao, custo, tipo_receita };
-            
-            let url = `${API_URL}/receitas`;
-            let method = 'POST';
+            const url    = id ? `${API_URL}/receitas/${id}` : `${API_URL}/receitas`;
+            const method = id ? 'PUT' : 'POST';
 
-            if (id) {
-                url = `${API_URL}/receitas/${id}`;
-                method = 'PUT';
-            }
-
-            const response = await fetch(url, {
-                method: method,
+            const resp = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(data)
+                body: JSON.stringify({ nome, descricao, custo, tipo_receita })
             });
 
-            if (response.ok) {
+            if (resp.ok) {
                 alert(id ? 'Receita atualizada!' : 'Receita criada!');
                 fecharModal();
                 carregarReceitas();
@@ -425,15 +397,13 @@
             window.location.href = '/login.html';
         }
 
-        window.onclick = function(event) {
+        window.onclick = e => {
             const modal = document.getElementById('modal');
-            if (event.target === modal) {
-                fecharModal();
-            }
-        }
+            if (e.target === modal) fecharModal();
+        };
 
         verificarLogin();
         carregarReceitas();
-    </script>
-</body>
+        </script>
+    </body>
 </html>

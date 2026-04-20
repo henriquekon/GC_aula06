@@ -18,6 +18,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: receitas
+      MAIL_USER: henriqueandrekonrad@gmail.com
+      MAIL_PASS: 08755a8e9fa7f1c28afc688dfe14dfde
+      MAIL_TO: henrique.konrad@universo.univates.br
     ports:
       - "5432:5432"
     volumes:
