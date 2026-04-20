@@ -63,9 +63,12 @@ def send_email(subject, body):
         msg['To'] = EMAIL_CONFIG['to']
         msg.attach(MIMEText(body, 'html'))
 
-        with smtplib.SMTP(EMAIL_CONFIG['host'], EMAIL_CONFIG['port']) as server:
-            server.login(EMAIL_CONFIG['user'], EMAIL_CONFIG['password'])
-            server.sendmail(EMAIL_CONFIG['from'], EMAIL_CONFIG['to'], msg.as_string())
+        server = smtplib.SMTP(EMAIL_CONFIG['host'], EMAIL_CONFIG['port'])
+        server.starttls()
+        server.login(EMAIL_CONFIG['user'], EMAIL_CONFIG['password'])
+        server.sendmail(EMAIL_CONFIG['from'], EMAIL_CONFIG['to'], msg.as_string())
+        server.quit()
+        
         return True
     except Exception as e:
         print(f"[EMAIL ERROR] {e}")
