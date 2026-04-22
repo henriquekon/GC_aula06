@@ -22,7 +22,6 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 CORS(app, supports_credentials=True)
 
-# DB
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST', 'postgres'),
     'port': 5432,
@@ -31,7 +30,6 @@ DB_CONFIG = {
     'database': os.environ.get('DB_NAME', 'receitas')
 }
 
-# Mailtrap
 EMAIL_CONFIG = {
     'host': os.environ.get('MAIL_HOST', 'sandbox.smtp.mailtrap.io'),
     'port': int(os.environ.get('MAIL_PORT', 2525)),
@@ -129,6 +127,7 @@ def logout():
 @login_required
 def get_receitas():
     tipo = request.args.get('tipo')
+    nome = request.args.get('nome')
     data_inicio = request.args.get('data_inicio')
     data_fim = request.args.get('data_fim')
 
@@ -137,6 +136,10 @@ def get_receitas():
 
     query = "SELECT * FROM receita WHERE 1=1"
     params = []
+
+    if nome:
+        query += " AND nome ILIKE %s", (f'%{nome}%',)
+        params.append(f'%{nome}%')
 
     if tipo and tipo in ('doce', 'salgada'):
         query += " AND tipo_receita = %s"
@@ -230,7 +233,6 @@ def create_receita():
     cur.close()
     conn.close()
 
-    # Enviar notificação
     subject = f"[Receitas] Nova receita criada: {nome}"
     send_email(subject, build_email_body('create', new_receita))
 
@@ -265,7 +267,6 @@ def update_receita(id):
     cur.close()
     conn.close()
 
-    # Enviar notificação
     subject = f"[Receitas] Receita atualizada: {nome}"
     send_email(subject, build_email_body('update', updated))
 

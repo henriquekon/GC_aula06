@@ -213,8 +213,8 @@
         <div class="filtros">
             <!-- filtro tipo -->
             <div class="filtros-grupo">
-                <button onclick="setTipo('todas')"   id="btn-todas"   class="active">Todas</button>
-                <button onclick="setTipo('doce')"    id="btn-doce">Doces</button>
+                <button onclick="setTipo('todas')" id="btn-todas" class="active">Todas</button>
+                <button onclick="setTipo('doce')" id="btn-doce">Doces</button>
                 <button onclick="setTipo('salgada')" id="btn-salgada">Salgadas</button>
             </div>
 
@@ -238,8 +238,7 @@
             </div>
 
             <button class="btn-filtrar" onclick="carregarReceitas()">Filtrar</button>
-            <button class="btn-limpar"  onclick="limparFiltros()">Limpar</button>
-
+            <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
             <button class="btn-criar" onclick="abrirModalCriar()">+ Nova Receita</button>
         </div>
 
@@ -253,8 +252,8 @@
         <div class="modal-content">
             <h2 id="modal-title">Nova Receita</h2>
             <input type="hidden" id="receita-id">
-            <input type="text"   id="nome"       placeholder="Nome da receita">
-            <textarea            id="descricao"  placeholder="Descrição"></textarea>
+            <input type="text" id="nome" placeholder="Nome da receita">
+            <textarea id="descricao" placeholder="Descrição"></textarea>
             <input type="number" id="custo" step="0.01" placeholder="Custo (R$)">
             <select id="tipo_receita">
                 <option value="doce">Doce</option>
@@ -262,7 +261,7 @@
             </select>
             <div class="modal-buttons">
                 <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-                <button class="btn-salvar"   onclick="salvarReceita()">Salvar</button>
+                <button class="btn-salvar" onclick="salvarReceita()">Salvar</button>
             </div>
         </div>
     </div>
@@ -301,34 +300,19 @@
                 if (btn) btn.classList.toggle('active', t === tipoAtual);
             });
 
-            const nome = document.getElementById('busca-nome').value.trim();
-
-            // Se há busca por nome, usa endpoint de busca
-            if (nome) {
-                try {
-                    const resp = await fetch(`${API_URL}/receitas/${encodeURIComponent(nome)}`, { credentials: 'include' });
-                    if (resp.status === 404) {
-                        container.innerHTML = '<div class="loading">Nenhuma receita encontrada</div>';
-                        return;
-                    }
-                    const receitas = await resp.json();
-                    renderReceitas(Array.isArray(receitas) ? receitas : [receitas]);
-                } catch {
-                    container.innerHTML = '<div class="loading">Erro ao buscar receitas</div>';
-                }
-                return;
-            }
-
             const params = new URLSearchParams();
             if (tipoAtual !== 'todas') params.append('tipo', tipoAtual);
+
+            const nome = document.getElementById('busca-nome').value.trim();
+            if (nome) params.append('nome', nome);
 
             const di = document.getElementById('data_inicio').value;
             const df = document.getElementById('data_fim').value;
             if (di) params.append('data_inicio', di);
             if (df) params.append('data_fim', df);
-
+            
             try {
-                const resp    = await fetch(`${API_URL}/receitas?${params}`, { credentials: 'include' });
+                const resp     = await fetch(`${API_URL}/receitas?${params}`, { credentials: 'include' });
                 const receitas = await resp.json();
                 renderReceitas(receitas);
             } catch {
