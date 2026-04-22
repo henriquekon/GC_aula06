@@ -34,7 +34,7 @@ def logged_client(client):
 
 
 def make_receita(id=1, nome="Bolo de Chocolate", descricao="Bolo fofinho",
-                 custo=25.50, tipo="doce", data="2024-01-15T10:00:00"):
+                 custo=25.50, tipo="doce", data="2026-01-15T10:00:00"):
     return {
         "id": id, "nome": nome, "descricao": descricao,
         "custo": custo, "tipo_receita": tipo, "data_registro": data,
@@ -42,7 +42,7 @@ def make_receita(id=1, nome="Bolo de Chocolate", descricao="Bolo fofinho",
 
 
 def _mock_row(data: dict):
-    """Cria um MagicMock que imita DictRow do psycopg2."""
+    # Cria um MagicMock que imita DictRow do psycopg2.
     row = MagicMock()
     row.keys.return_value = list(data.keys())
     row.__getitem__ = lambda self, k: data[k]
@@ -101,12 +101,12 @@ class TestAuth:
 class TestGetReceitas:
 
     def _fake_db_rows(self, rows):
-        """Converte lista de dicts em rows com data_registro mockado."""
+        # Converte lista de dicts em rows com data_registro mockado.
         result = []
         for r in rows:
             d = dict(r)
             d["data_registro"] = MagicMock(strftime=lambda fmt: d["data_registro"]
-                                           if isinstance(d["data_registro"], str) else "2024-01-01T00:00:00")
+                                           if isinstance(d["data_registro"], str) else "2026-01-01T00:00:00")
             result.append(d)
         return result
 
@@ -149,11 +149,11 @@ class TestGetReceitas:
             conn.cursor.return_value = cur
             mock_db.return_value = conn
 
-            resp = logged_client.get("/api/receitas?data_inicio=2024-01-01")
+            resp = logged_client.get("/api/receitas?data_inicio=2026-01-01")
 
         assert resp.status_code == 200
         call_args = cur.execute.call_args
-        assert "2024-01-01" in str(call_args)
+        assert "2026-01-01" in str(call_args)
 
     # 8 - filtro por data_fim
     def test_filter_by_data_fim(self, logged_client, app_module):
@@ -164,18 +164,18 @@ class TestGetReceitas:
             conn.cursor.return_value = cur
             mock_db.return_value = conn
 
-            resp = logged_client.get("/api/receitas?data_fim=2024-12-31")
+            resp = logged_client.get("/api/receitas?data_fim=2026-12-31")
 
         assert resp.status_code == 200
         call_args = cur.execute.call_args
-        assert "2024-12-31" in str(call_args)
+        assert "2026-12-31" in str(call_args)
 
     # 9 - busca por id (encontrada)
     def test_get_receita_by_id_found(self, logged_client, app_module):
         row_data = {
             "id": 1, "nome": "Bolo", "descricao": "Desc", "custo": 20.0,
             "tipo_receita": "doce",
-            "data_registro": MagicMock(strftime=lambda fmt: "2024-01-01T00:00:00"),
+            "data_registro": MagicMock(strftime=lambda fmt: "2026-01-01T00:00:00"),
         }
         with patch.object(app_module, "get_db") as mock_db:
             conn = MagicMock()
@@ -213,7 +213,7 @@ class TestCreateReceita:
         return _mock_row({
             "id": 1, "nome": "Bolo", "descricao": "Desc", "custo": 25.50,
             "tipo_receita": "doce",
-            "data_registro": MagicMock(strftime=lambda f: "2024-01-01"),
+            "data_registro": MagicMock(strftime=lambda f: "2026-01-01"),
         })
 
     # 11 - criar receita com sucesso
@@ -257,7 +257,7 @@ class TestCreateReceita:
         row = _mock_row({
             "id": 2, "nome": "Pudim", "descricao": "Doce", "custo": 18.0,
             "tipo_receita": "doce",
-            "data_registro": MagicMock(strftime=lambda f: "2024-01-01"),
+            "data_registro": MagicMock(strftime=lambda f: "2026-01-01"),
         })
         with patch.object(app_module, "get_db") as mock_db, \
              patch.object(app_module, "send_email") as mock_email:
@@ -284,7 +284,7 @@ class TestUpdateReceita:
         return _mock_row({
             "id": 1, "nome": "Old", "descricao": "Old Desc", "custo": 10.0,
             "tipo_receita": "doce",
-            "data_registro": MagicMock(strftime=lambda f: "2024-01-01"),
+            "data_registro": MagicMock(strftime=lambda f: "2026-01-01"),
         })
 
     # 15 - atualizar receita existente

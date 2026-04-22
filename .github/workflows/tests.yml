@@ -16,11 +16,11 @@ jobs:
         working-directory: api
 
     steps:
-      # 1 — checkout do código
+      # 1 - checkout do código
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2 — Python 3.12
+      # 2 - Python 3.12
       - name: Configurar Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -28,10 +28,10 @@ jobs:
           cache: pip
           cache-dependency-path: api/requirements.txt
 
-      # 3 — dependências (igual ao requirements.txt da API)
+      # 3 - dependências
       - name: Instalar dependências
         run: pip install flask flask-cors psycopg2-binary reportlab pytest
 
-      # 4 — testes
+      # 4 - testes
       - name: Executar testes
         run: python -m pytest tests.py -v --tb=short
