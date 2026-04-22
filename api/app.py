@@ -138,7 +138,7 @@ def get_receitas():
     params = []
 
     if nome:
-        query += " AND nome ILIKE %s", (f'%{nome}%',)
+        query += " AND nome ILIKE %s"
         params.append(f'%{nome}%')
 
     if tipo and tipo in ('doce', 'salgada'):
