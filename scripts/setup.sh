@@ -17,12 +17,12 @@ echo ""
 
 read -rp "  E-mail REMETENTE (ex: app@mailtrap.io):  " MAIL_FROM
 read -rp "  E-mail DESTINATÁRIO (quem recebe alerts): " MAIL_TO
-read -rp "  Host SMTP (padrão: sandbox.smtp.mailtrap.io): " MAIL_HOST
-MAIL_HOST=${MAIL_HOST:-sandbox.smtp.mailtrap.io}
-read -rp "  Porta SMTP (padrão: 2525): " MAIL_PORT
-MAIL_PORT=${MAIL_PORT:-2525}
+read -rp "  Host SMTP (padrão: smtp.gmail.com): " MAIL_HOST
+MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+read -rp "  Porta SMTP (padrão: 587): " MAIL_PORT
+MAIL_PORT=${MAIL_PORT:-587}
 read -rp "  Usuário SMTP: " MAIL_USER
-read -rsp "  Senha SMTP:   " MAIL_PASS
+read -rsp "  Senha SMTP: " MAIL_PASS
 echo ""
 
 [[ -z "$MAIL_FROM" || -z "$MAIL_TO" || -z "$MAIL_USER" || -z "$MAIL_PASS" ]] && \
