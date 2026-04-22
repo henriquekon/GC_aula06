@@ -169,7 +169,7 @@ def get_receitas():
 def get_receita_nome(nome):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("SELECT * FROM receita WHERE nome ILIKE %s", (nome,))
+    cur.execute("SELECT * FROM receita WHERE nome ILIKE %s", (f'%{nome}%',))
     receitas = cur.fetchall()
     cur.close()
     conn.close()
