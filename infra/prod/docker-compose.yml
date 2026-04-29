@@ -1,67 +1,41 @@
 services:
-  nginx:
-    build: .
-    container_name: my-nginx
+  nginx-prod:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    container_name: nginx-prod
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
-      - ./html:/usr/share/nginx/html
+      - ../../html:/usr/share/nginx/html
       - ./nginx.conf:/etc/nginx/conf.d/custom.conf:ro
     restart: unless-stopped
     networks:
-      - web-network
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: my-postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: receitas
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    restart: unless-stopped
-    networks:
-      - web-network
-
-  python-app:
-    image: python:3.12-slim
-    container_name: create_db
-    volumes:
-      - ./scripts:/app
-    working_dir: /app
-    command: tail -f /dev/null
+      - prod-network
     depends_on:
-      - postgres
-    networks:
-      - web-network
+      - api-prod
 
-  api:
-    build: ./api
-    container_name: minha-api
+  api-prod:
+    build: ../../api
+    container_name: api-prod
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
-      DB_HOST: postgres
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: receitas
-      MAIL_HOST: ${MAIL_HOST:-sandbox.smtp.mailtrap.io}
-      MAIL_PORT: ${MAIL_PORT:-2525}
+      DB_HOST: ${DB_HOST_PROD}
+      DB_PORT: ${DB_PORT_PROD:-5432}
+      DB_USER: ${DB_USER_PROD}
+      DB_PASSWORD: ${DB_PASSWORD_PROD}
+      DB_NAME: ${DB_NAME_PROD}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
       MAIL_FROM: ${MAIL_FROM}
       MAIL_TO: ${MAIL_TO}
-    depends_on:
-      - postgres
+    restart: unless-stopped
     networks:
-      - web-network
-
-volumes:
-  postgres-data:
+      - prod-network
 
 networks:
-  web-network:
+  prod-network:
     driver: bridge

@@ -1,0 +1,41 @@
+services:
+  nginx-homolog:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    container_name: nginx-homolog
+    ports:
+      - "8081:80"
+    volumes:
+      - ../../html:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/conf.d/custom.conf:ro
+    restart: unless-stopped
+    networks:
+      - homolog-network
+    depends_on:
+      - api-homolog
+
+  api-homolog:
+    build: ../../api
+    container_name: api-homolog
+    ports:
+      - "5002:5000"
+    environment:
+      DB_HOST: ${DB_HOST_HOMOLOG}
+      DB_PORT: ${DB_PORT_HOMOLOG:-5432}
+      DB_USER: ${DB_USER_HOMOLOG}
+      DB_PASSWORD: ${DB_PASSWORD_HOMOLOG}
+      DB_NAME: ${DB_NAME_HOMOLOG}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_TO: ${MAIL_TO}
+    restart: unless-stopped
+    networks:
+      - homolog-network
+
+networks:
+  homolog-network:
+    driver: bridge
