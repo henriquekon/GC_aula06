@@ -336,7 +336,7 @@ def export_receita_pdf(id):
     table_data = [
         [Paragraph('<b>Tipo</b>', styles['Normal']),
          Paragraph(r['tipo_receita'].upper(), ParagraphStyle('tipo', parent=styles['Normal'],
-         textColor=tipo_color, fontSize=12))],
+        textColor=tipo_color, fontSize=12))],
         [Paragraph('<b>Custo</b>', styles['Normal']),
          Paragraph(f"R$ {r['custo']:.2f}", ParagraphStyle('custo', parent=styles['Normal'],
          textColor=colors.HexColor('#2e7d32'),
