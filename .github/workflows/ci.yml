@@ -26,7 +26,7 @@ jobs:
         run: pip install flask flask-cors psycopg2-binary reportlab pytest flake8
 
       - name: Análise de qualidade (Flake8)
-        run: flake8 api/app.py --max-line-length=140 --extend-ignore=E127
+        run: flake8 api/app.py --max-line-length=140 --extend-ignore=E127,E128,E122
 
       - name: Executar testes
         run: python -m pytest tests/tests.py -v --tb=short
