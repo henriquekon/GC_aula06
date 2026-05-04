@@ -66,7 +66,7 @@ def send_email(subject, body):
         server.login(EMAIL_CONFIG['user'], EMAIL_CONFIG['password'])
         server.sendmail(EMAIL_CONFIG['from'], EMAIL_CONFIG['to'], msg.as_string())
         server.quit()
-        
+
         return True
     except Exception as e:
         print(f"[EMAIL ERROR] {e}")
@@ -79,7 +79,8 @@ def build_email_body(action, receita):
     tipo_color = '#c41e1e' if receita['tipo_receita'] == 'doce' else '#2e7d32'
     return f"""
     <html><body style="font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;">
-      <div style="max-width:500px;margin:auto;background:white;border-radius:10px;padding:30px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+      <div style="max-width:500px;margin:auto;background:white;
+      border-radius:10px;padding:30px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
         <h2 style="color:{color}">Receita {action_label}!</h2>
         <table style="width:100%;border-collapse:collapse;margin-top:15px">
           <tr><td style="padding:8px;color:#666;font-weight:bold">Nome</td>
@@ -97,6 +98,7 @@ def build_email_body(action, receita):
       </div>
     </body></html>
     """
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -122,6 +124,7 @@ def login():
 def logout():
     session.clear()
     return jsonify({'success': True})
+
 
 @app.route('/api/receitas', methods=['GET'])
 @login_required
@@ -319,8 +322,6 @@ def export_receita_pdf(id):
                                  spaceAfter=10)
     label_style = ParagraphStyle('Label', parent=styles['Normal'],
                                  fontSize=10, textColor=colors.grey)
-    value_style = ParagraphStyle('Value', parent=styles['Normal'],
-                                 fontSize=13, spaceAfter=6)
     desc_style = ParagraphStyle('Desc', parent=styles['Normal'],
                                 fontSize=12, leading=18, spaceAfter=10)
 
@@ -335,11 +336,11 @@ def export_receita_pdf(id):
     table_data = [
         [Paragraph('<b>Tipo</b>', styles['Normal']),
          Paragraph(r['tipo_receita'].upper(), ParagraphStyle('tipo', parent=styles['Normal'],
-                                                              textColor=tipo_color, fontSize=12))],
+         textColor=tipo_color, fontSize=12))],
         [Paragraph('<b>Custo</b>', styles['Normal']),
          Paragraph(f"R$ {r['custo']:.2f}", ParagraphStyle('custo', parent=styles['Normal'],
-                                                            textColor=colors.HexColor('#2e7d32'),
-                                                            fontSize=13, fontName='Helvetica-Bold'))],
+         textColor=colors.HexColor('#2e7d32'),
+         fontSize=13, fontName='Helvetica-Bold'))],
         [Paragraph('<b>Data de Registro</b>', styles['Normal']),
          Paragraph(data_fmt, styles['Normal'])],
     ]
@@ -361,7 +362,8 @@ def export_receita_pdf(id):
 
     # Footer
     footer = Paragraph(
-        f"<font size='9' color='grey'>Gerado em {datetime.now().strftime('%d/%m/%Y às %H:%M')} · Sistema de Receitas</font>",
+        f"<font size='9' color='grey'>Gerado em "
+        f"{datetime.now().strftime('%d/%m/%Y às %H:%M')} · Sistema de Receitas</font>",
         styles['Normal']
     )
     elements.append(footer)
