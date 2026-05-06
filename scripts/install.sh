@@ -69,6 +69,13 @@ else
   success "Docker já instalado."
 fi
 
+# Firewall
+info "Configurando firewall..."
+sudo ufw allow 8080/tcp
+sudo ufw allow 8081/tcp
+success "Portas 8080 e 8081 liberadas."
+echo ""
+
 # psql
 if ! command -v psql &>/dev/null; then
   info "Instalando cliente PostgreSQL (psql)..."
