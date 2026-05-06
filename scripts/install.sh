@@ -11,18 +11,18 @@ error()   { echo -e "${RED}[ERRO]${NC}   $1"; exit 1; }
 REPO_URL="https://github.com/henriquekon/GC_aula06.git"
 REPO_DIR="$HOME/receitas-app"
 DB_PORT=5432
-DB_USER=postgres
-DB_NAME=postgres
+DB_USER=neondb_owner
+DB_NAME=neondb
 
 echo -e "\n${BLUE}========================================${NC}"
 echo -e "${BLUE}  Instalador – Sistema de Receitas      ${NC}"
 echo -e "${BLUE}========================================${NC}\n"
 
 # Bancos
-info "Configuração dos bancos de dados (Supabase)"
+info "Configuração dos bancos de dados (Neon)"
 echo ""
-read -rp "Host do banco de PRODUÇÃO (db.xxx.supabase.co): " DB_HOST_PROD
-read -rp "Host do banco de HOMOLOGAÇÃO (db.yyy.supabase.co): " DB_HOST_HOMOLOG
+read -rp "Host do banco de PRODUÇÃO: " DB_HOST_PROD
+read -rp "Host do banco de HOMOLOGAÇÃO: " DB_HOST_HOMOLOG
 read -rsp "Senha dos bancos (mesma para ambos): " DB_PASSWORD
 echo ""
 
@@ -36,12 +36,12 @@ info "Configuração de e-mail para notificações"
 echo ""
 read -rp "Host SMTP (padrão: smtp.gmail.com): " MAIL_HOST
 MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
-read -rp "Porta SMTP (padrão: 587):" MAIL_PORT
+read -rp "Porta SMTP (padrão: 587): " MAIL_PORT
 MAIL_PORT=${MAIL_PORT:-587}
 read -rp "Usuário SMTP: " MAIL_USER
 read -rsp "Senha SMTP: " MAIL_PASS
 echo ""
-read -rp "E-mail remetente (ex: app@receitas.com): " MAIL_FROM
+read -rp "E-mail remetente (ex: app@gmail.com): " MAIL_FROM
 read -rp "E-mail destinatário (quem recebe alertas): " MAIL_TO
 
 [[ -z "$MAIL_USER" || -z "$MAIL_PASS" || -z "$MAIL_FROM" || -z "$MAIL_TO" ]] && \
@@ -125,7 +125,7 @@ run_migrations() {
     [ -f "$sql_file" ] || continue
     info "  → $(basename "$sql_file")"
     PGPASSWORD="$DB_PASSWORD" psql \
-      -h "$host" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+      "postgresql://$DB_USER:$DB_PASSWORD@$host:$DB_PORT/$DB_NAME?sslmode=require" \
       -f "$sql_file" -q
   done
   success "Migrations de ${label} aplicadas."
