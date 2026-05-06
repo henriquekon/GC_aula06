@@ -3,19 +3,37 @@ set -e
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 
-info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-success() { echo -e "${GREEN}[OK]${NC} $1"; }
-warn() { echo -e "${YELLOW}[AVISO]${NC} $1"; }
-error() { echo -e "${RED}[ERRO]${NC} $1"; exit 1; }
+info()    { echo -e "${BLUE}[INFO]${NC}  $1"; }
+success() { echo -e "${GREEN}[OK]${NC}      $1"; }
+warn()    { echo -e "${YELLOW}[AVISO]${NC} $1"; }
+error()   { echo -e "${RED}[ERRO]${NC}   $1"; exit 1; }
 
 REPO_URL="https://github.com/henriquekon/GC_aula06.git"
 REPO_DIR="$HOME/receitas-app"
+DB_PORT=5432
+DB_USER=postgres
+DB_NAME=postgres
+
+echo -e "\n${BLUE}========================================${NC}"
+echo -e "${BLUE}  Instalador – Sistema de Receitas      ${NC}"
+echo -e "${BLUE}========================================${NC}\n"
+
+# Bancos
+info "Configuração dos bancos de dados (Supabase)"
+echo ""
+read -rp "Host do banco de PRODUÇÃO (db.xxx.supabase.co): " DB_HOST_PROD
+read -rp "Host do banco de HOMOLOGAÇÃO (db.yyy.supabase.co): " DB_HOST_HOMOLOG
+read -rsp "Senha dos bancos (mesma para ambos): " DB_PASSWORD
+echo ""
+
+[[ -z "$DB_HOST_PROD" || -z "$DB_HOST_HOMOLOG" || -z "$DB_PASSWORD" ]] && \
+  error "Host de produção, host de homologação e senha são obrigatórios."
+success "Configuração dos bancos salva."
+echo ""
 
 # E-mail
 info "Configuração de e-mail para notificações"
 echo ""
-read -rp "E-mail REMETENTE (ex: app@gmail.com): " MAIL_FROM
-read -rp "E-mail DESTINATÁRIO (quem recebe alerts): " MAIL_TO
 read -rp "Host SMTP (padrão: smtp.gmail.com): " MAIL_HOST
 MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
 read -rp "Porta SMTP (padrão: 587):" MAIL_PORT
@@ -23,49 +41,15 @@ MAIL_PORT=${MAIL_PORT:-587}
 read -rp "Usuário SMTP: " MAIL_USER
 read -rsp "Senha SMTP: " MAIL_PASS
 echo ""
+read -rp "E-mail remetente (ex: app@receitas.com): " MAIL_FROM
+read -rp "E-mail destinatário (quem recebe alertas): " MAIL_TO
 
-[[ -z "$MAIL_FROM" || -z "$MAIL_TO" || -z "$MAIL_USER" || -z "$MAIL_PASS" ]] && \
-error "Todos os campos de e-mail são obrigatórios."
+[[ -z "$MAIL_USER" || -z "$MAIL_PASS" || -z "$MAIL_FROM" || -z "$MAIL_TO" ]] && \
+  error "Todos os campos de e-mail são obrigatórios."
 success "Configuração de e-mail salva."
 echo ""
 
-# Banco de Produção 
-info "Configuração do banco de dados – PRODUÇÃO"
-echo ""
-read -rp "Host (ex: db.xxx.supabase.co): " DB_HOST_PROD
-read -rp "Porta (padrão: 5432): " DB_PORT_PROD
-DB_PORT_PROD=${DB_PORT_PROD:-5432}
-read -rp "Usuário (padrão: postgres): " DB_USER_PROD
-DB_USER_PROD=${DB_USER_PROD:-postgres}
-read -rsp "Senha: " DB_PASSWORD_PROD
-echo ""
-read -rp "Nome do banco (padrão: postgres): " DB_NAME_PROD
-DB_NAME_PROD=${DB_NAME_PROD:-postgres}
-
-[[ -z "$DB_HOST_PROD" || -z "$DB_PASSWORD_PROD" ]] && \
-error "Host e senha do banco de produção são obrigatórios."
-success "Configuração de produção salva."
-echo ""
-
-# Banco de Homologação
-info "Configuração do banco de dados – HOMOLOGAÇÃO"
-echo ""
-read -rp "Host (ex: db.yyy.supabase.co): " DB_HOST_HOMOLOG
-read -rp "Porta (padrão: 5432): " DB_PORT_HOMOLOG
-DB_PORT_HOMOLOG=${DB_PORT_HOMOLOG:-5432}
-read -rp "Usuário (padrão: postgres): " DB_USER_HOMOLOG
-DB_USER_HOMOLOG=${DB_USER_HOMOLOG:-postgres}
-read -rsp "Senha: " DB_PASSWORD_HOMOLOG
-echo ""
-read -rp "Nome do banco (padrão: postgres): " DB_NAME_HOMOLOG
-DB_NAME_HOMOLOG=${DB_NAME_HOMOLOG:-postgres}
-
-[[ -z "$DB_HOST_HOMOLOG" || -z "$DB_PASSWORD_HOMOLOG" ]] && \
-error "Host e senha do banco de homologação são obrigatórios."
-success "Configuração de homologação salva."
-echo ""
-
-# Docker 
+# Docker
 if ! command -v docker &>/dev/null; then
   info "Instalando Docker..."
   sudo apt update -qq
@@ -85,7 +69,7 @@ else
   success "Docker já instalado."
 fi
 
-# ── psql (cliente PostgreSQL para rodar migrations) ───────────────────────────
+# psql
 if ! command -v psql &>/dev/null; then
   info "Instalando cliente PostgreSQL (psql)..."
   sudo apt update -qq
@@ -107,9 +91,8 @@ fi
 success "Repositório pronto em $REPO_DIR"
 echo ""
 
-# .env 
+# .env
 cat > "$REPO_DIR/.env" <<EOF
-# E-mail
 MAIL_HOST=${MAIL_HOST}
 MAIL_PORT=${MAIL_PORT}
 MAIL_USER=${MAIL_USER}
@@ -117,19 +100,17 @@ MAIL_PASS=${MAIL_PASS}
 MAIL_FROM=${MAIL_FROM}
 MAIL_TO=${MAIL_TO}
 
-# Banco – Produção
 DB_HOST_PROD=${DB_HOST_PROD}
-DB_PORT_PROD=${DB_PORT_PROD}
-DB_USER_PROD=${DB_USER_PROD}
-DB_PASSWORD_PROD=${DB_PASSWORD_PROD}
-DB_NAME_PROD=${DB_NAME_PROD}
+DB_PORT_PROD=${DB_PORT}
+DB_USER_PROD=${DB_USER}
+DB_PASSWORD_PROD=${DB_PASSWORD}
+DB_NAME_PROD=${DB_NAME}
 
-# Banco – Homologação
 DB_HOST_HOMOLOG=${DB_HOST_HOMOLOG}
-DB_PORT_HOMOLOG=${DB_PORT_HOMOLOG}
-DB_USER_HOMOLOG=${DB_USER_HOMOLOG}
-DB_PASSWORD_HOMOLOG=${DB_PASSWORD_HOMOLOG}
-DB_NAME_HOMOLOG=${DB_NAME_HOMOLOG}
+DB_PORT_HOMOLOG=${DB_PORT}
+DB_USER_HOMOLOG=${DB_USER}
+DB_PASSWORD_HOMOLOG=${DB_PASSWORD}
+DB_NAME_HOMOLOG=${DB_NAME}
 EOF
 success ".env criado."
 echo ""
@@ -138,27 +119,20 @@ echo ""
 run_migrations() {
   local label="$1"
   local host="$2"
-  local port="$3"
-  local user="$4"
-  local password="$5"
-  local dbname="$6"
 
   info "Aplicando migrations no banco de ${label}..."
-
   for sql_file in "$REPO_DIR"/migrations/V*.sql; do
     [ -f "$sql_file" ] || continue
-    filename=$(basename "$sql_file")
-    info "  → ${filename}"
-    PGPASSWORD="$password" psql \
-      -h "$host" -p "$port" -U "$user" -d "$dbname" \
+    info "  → $(basename "$sql_file")"
+    PGPASSWORD="$DB_PASSWORD" psql \
+      -h "$host" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
       -f "$sql_file" -q
   done
-
   success "Migrations de ${label} aplicadas."
 }
 
-run_migrations "PRODUÇÃO"    "$DB_HOST_PROD"    "$DB_PORT_PROD"    "$DB_USER_PROD"    "$DB_PASSWORD_PROD"    "$DB_NAME_PROD"
-run_migrations "HOMOLOGAÇÃO" "$DB_HOST_HOMOLOG" "$DB_PORT_HOMOLOG" "$DB_USER_HOMOLOG" "$DB_PASSWORD_HOMOLOG" "$DB_NAME_HOMOLOG"
+run_migrations "PRODUÇÃO" "$DB_HOST_PROD"
+run_migrations "HOMOLOGAÇÃO" "$DB_HOST_HOMOLOG"
 echo ""
 
 # Containers
@@ -177,12 +151,11 @@ sudo docker compose \
 success "Homologação no ar."
 echo ""
 
-# Resumo 
 echo -e "${GREEN}  Instalação concluída!                 ${NC}"
 echo ""
-echo -e "  Produção: ${BLUE}http://localhost:8080${NC}"
-echo -e "  Homologação: ${BLUE}http://localhost:8081${NC}"
+echo -e "  Produção:     ${BLUE}http://localhost:8080${NC}"
+echo -e "  Homologação:  ${BLUE}http://localhost:8081${NC}"
 echo ""
-echo -e "  Login: admin / admin123"
+echo -e "  Login:        admin / admin123"
 echo -e "  Notificações: ${MAIL_TO}"
 echo ""
