@@ -1,4 +1,4 @@
-name: CI – Testes e Qualidade
+name: CI: Testes e Qualidade
 
 on:
   push:
@@ -8,8 +8,23 @@ on:
 
 jobs:
   ci:
-    name: Linter + 20 testes unitários
+    name: Linter + Testes
     runs-on: ubuntu-latest
+
+    env:
+      DB_HOST_TESTING: ${{ secrets.DB_HOST_TESTING }}
+      DB_PORT_TESTING: 5432
+      DB_USER_TESTING: neondb_owner
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME_TESTING: neondb
+      MAILTRAP_USER: ${{ secrets.MAILTRAP_USER }}
+      MAILTRAP_PASS: ${{ secrets.MAILTRAP_PASS }}
+      MAILTRAP_API_TOKEN: ${{ secrets.MAILTRAP_API_TOKEN }}
+      MAILTRAP_INBOX_ID: ${{ secrets.MAILTRAP_INBOX_ID }}
+      MAIL_HOST: sandbox.smtp.mailtrap.io
+      MAIL_PORT: 2525
+      MAIL_FROM: test@receitas.com
+      MAIL_TO: test@receitas.com
 
     steps:
       - name: Checkout
@@ -23,10 +38,36 @@ jobs:
           cache-dependency-path: api/requirements.txt
 
       - name: Instalar dependências
-        run: pip install flask flask-cors psycopg2-binary reportlab pytest flake8
+        run: pip install flask flask-cors psycopg2-binary reportlab pytest pytest-cov flake8 requests
 
       - name: Análise de qualidade (Flake8)
         run: flake8 api/app.py --max-line-length=140 --extend-ignore=E127,E128,E122
 
-      - name: Executar testes
-        run: python -m pytest tests/tests.py -v --tb=short
+      - name: Executar testes com cobertura
+        run: |
+          python -m pytest tests/tests.py -v --tb=short \
+            --cov=api \
+            --cov-report=term-missing \
+            --cov-report=html:coverage-report
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage-report/
+
+  deploy-homolog:
+    name: Deploy Homologação
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: bash ~/receitas-app/scripts/deploy-homolog.sh
