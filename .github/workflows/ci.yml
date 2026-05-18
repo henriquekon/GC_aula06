@@ -38,24 +38,14 @@ jobs:
           cache-dependency-path: api/requirements.txt
 
       - name: Instalar dependências
-        run: pip install flask flask-cors psycopg2-binary reportlab pytest pytest-cov flake8 requests
+        run: pip install flask flask-cors psycopg2-binary reportlab pytest flake8 requests
 
       - name: Análise de qualidade (Flake8)
         run: flake8 api/app.py --max-line-length=140 --extend-ignore=E127,E128,E122
 
       - name: Executar testes com cobertura
         run: |
-          python -m pytest tests/tests.py -v --tb=short \
-            --cov=api \
-            --cov-report=term-missing \
-            --cov-report=html:coverage-report
-
-      - name: Publicar relatório de cobertura
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: coverage-report/
+          python -m pytest tests/tests.py -v --tb=short
 
   deploy-homolog:
     name: Deploy Homologação
